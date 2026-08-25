@@ -1,0 +1,76 @@
+{
+  "panoramas": [
+    {
+      "id": "1",
+      "title": "Warehouse View",
+      "description": "360-degree view of the main warehouse storage area",
+      "imageUrl": "panorama_dummy.jpg",
+      "itemLocations": [
+        {
+          "id": "A101",
+          "name": "Brake Pads",
+          "yaw": 45.5,
+          "pitch": -8.0
+        },
+        {
+          "id": "B220",
+          "name": "Oil Filters",
+          "yaw": 120.0,
+          "pitch": 5.0
+        },
+        {
+          "id": "C330",
+          "name": "Spark Plugs",
+          "yaw": -30.0,
+          "pitch": 10.0
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Loading Dock",
+      "description": "Panoramic view of the loading and unloading area",
+      "imageUrl": "panorama_dummy.jpg",
+      "itemLocations": [
+        {
+          "id": "D440",
+          "name": "Timing Belt",
+          "yaw": 60.0,
+          "pitch": -5.0
+        },
+        {
+          "id": "E550",
+          "name": "Water Pump",
+          "yaw": 180.0,
+          "pitch": 8.0
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Storage Room A",
+      "description": "Interior view of primary storage facility",
+      "imageUrl": "panorama_dummy.jpg",
+      "itemLocations": [
+        {
+          "id": "F660",
+          "name": "Shock Absorbers",
+          "yaw": 90.0,
+          "pitch": -2.0
+        },
+        {
+          "id": "G770",
+          "name": "Struts",
+          "yaw": 270.0,
+          "pitch": 12.0
+        },
+        {
+          "id": "H880",
+          "name": "Control Arms",
+          "yaw": 150.0,
+          "pitch": -10.0
+        }
+      ]
+    }
+  ]
+}

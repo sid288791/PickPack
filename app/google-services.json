@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "57836849727",
+    "project_id": "auto-part-ordermgmt",
+    "storage_bucket": "auto-part-ordermgmt.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:57836849727:android:2096f06438198f0a06468a",
+        "android_client_info": {
+          "package_name": "com.autopart.ordermgmt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUDMwsjrf3z4SwVPT_D98MXY7nL8V6YuY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

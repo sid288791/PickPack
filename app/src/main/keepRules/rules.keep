@@ -1,0 +1,40 @@
+# Add project specific R8 rules here.
+# AGP will combine all keep rule files in src/main/keepRules to pass to R8
+#
+# For more details, see
+#   https://d.android.com/r/tools/r8/keep-rules
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+# Keep rules for Network Client package
+-keep class com.autopart.networkclient.** { *; }
+-keep class com.autopart.networkclient.data.remote.network.model.** { *; }
+-keep class com.autopart.networkclient.domain.usecase.network.** { *; }
+-keep class com.autopart.networkclient.domain.usecase.** { *; }
+
+# Keep Kotlinx Serialization classes
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-dontwarn kotlinx.serialization.**
+
+# Keep all classes with @Serializable annotation in network client
+-keep @kotlinx.serialization.Serializable class com.autopart.networkclient.** {*;}
+-keepclassmembers class com.autopart.networkclient.** {
+    @kotlinx.serialization.Serializable *;
+}
+
+# Keep enum classes
+-keepclassmembers enum com.autopart.networkclient.** {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Keep Ktor client classes
+-keep class io.ktor.** { *; }
+-dontwarn io.ktor.**
