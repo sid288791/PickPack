@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.data.remote.firebase
 
 import android.app.NotificationManager
@@ -49,9 +53,11 @@ class OrderManagementFirebaseMessagingService : GoogleFirebaseMessagingService()
             )
         }
         
-       /* remoteMessage.data.isNotEmpty().let {
-            handleDataMessage(remoteMessage.data)
-        }*/
+        // Data-only messages with high priority are delivered even in Doze mode
+        // (critical for Zebra enterprise devices with aggressive battery management)
+        if (remoteMessage.notification == null && remoteMessage.data.isNotEmpty()) {
+            handleDataMessage(remoteMessage.data, orderId)
+        }
     }
 
     override fun onNewToken(token: String) {
@@ -100,15 +106,17 @@ class OrderManagementFirebaseMessagingService : GoogleFirebaseMessagingService()
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setFullScreenIntent(clickPendingIntent, true)
             .build()
 
         notificationManager.notify(notificationId, notification)
         NotificationSoundService.notifyNotificationPosted(this)
     }
 
-    private fun handleDataMessage(data: Map<String, String>) {
+    private fun handleDataMessage(data: Map<String, String>, orderId: String?) {
         val title = data["title"] ?: "Order Management"
         val body = data["body"] ?: "You have a new notification"
-       // sendNotification(title, body)
+        sendNotification(title, body, orderId)
     }
 }

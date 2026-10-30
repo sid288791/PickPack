@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.data.util
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -40,6 +45,7 @@ class NotificationChannelManager @Inject constructor(
                 description = CHANNEL_DESCRIPTION
                 enableLights(true)
                 enableVibration(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 // Sound is played via the looping NotificationSoundService instead of the
                 // channel itself, so keep the channel silent to avoid double playback.
                 setSound(null, null)

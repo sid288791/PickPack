@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.data.remote.firebase
 
 import android.app.Notification
@@ -7,9 +11,13 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.autopart.ordermgmt.R
 import java.util.concurrent.atomic.AtomicInteger
@@ -22,11 +30,19 @@ import java.util.concurrent.atomic.AtomicInteger
 class NotificationSoundService : Service() {
 
     private var mediaPlayer: MediaPlayer? = null
+    private var wakeLock: PowerManager.WakeLock? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val autoStopRunnable = Runnable {
+        stopLoopingSound()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
 
     companion object {
         private const val ACTION_STOP = "com.autopart.ordermgmt.action.STOP_SOUND"
         private const val SERVICE_CHANNEL_ID = "notification_sound_service_channel"
         private const val SERVICE_NOTIFICATION_ID = 999
+        private const val AUTO_STOP_DELAY_MS = 30_000L // 30 seconds
 
         private val activeNotificationCount = AtomicInteger(0)
 
@@ -67,21 +83,53 @@ class NotificationSoundService : Service() {
         }
 
         startForeground(SERVICE_NOTIFICATION_ID, buildServiceNotification())
+        // Reset the auto-stop timer on every new notification
+        handler.removeCallbacks(autoStopRunnable)
+        handler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
         if (mediaPlayer == null) {
             startLoopingSound()
         }
         return START_STICKY
     }
 
+    private fun acquireWakeLock() {
+        if (wakeLock == null) {
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "PickPack:NotificationSoundLock"
+            ).apply {
+                acquire(AUTO_STOP_DELAY_MS + 5_000L) // auto-release slightly after timeout
+            }
+        }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) it.release()
+        }
+        wakeLock = null
+    }
+
     private fun startLoopingSound() {
         try {
+            acquireWakeLock()
+            // Use ALARM stream if notification volume is 0 (common on Zebra enterprise profiles)
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val notifVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
+            val audioUsage = if (notifVolume == 0) {
+                AudioAttributes.USAGE_ALARM
+            } else {
+                AudioAttributes.USAGE_NOTIFICATION
+            }
+
             mediaPlayer = MediaPlayer().apply {
                 val afd = resources.openRawResourceFd(R.raw.notification_sound) ?: return
                 setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 afd.close()
                 setAudioAttributes(
                     AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setUsage(audioUsage)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
@@ -100,6 +148,7 @@ class NotificationSoundService : Service() {
             release()
         }
         mediaPlayer = null
+        releaseWakeLock()
     }
 
     private fun buildServiceNotification(): Notification {
@@ -128,6 +177,7 @@ class NotificationSoundService : Service() {
     }
 
     override fun onDestroy() {
+        handler.removeCallbacks(autoStopRunnable)
         stopLoopingSound()
         super.onDestroy()
     }

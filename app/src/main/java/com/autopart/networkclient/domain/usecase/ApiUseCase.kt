@@ -1,12 +1,7 @@
 /*
- * Copyright (c) Koninklijke Philips N.V.,2025
+ * Copyright (c) Koninklijke Advance N.V.,2025
  * All rights reserved
  */
-/*
- * Copyright (c) Koninklijke Philips N.V.,2025
- * All rights reserved
- */
-
 
 package com.autopart.networkclient.domain.usecase
 

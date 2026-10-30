@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.data.remote.firebase
 
 import android.content.BroadcastReceiver

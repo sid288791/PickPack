@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.orderdetail.domain.usecase
 
 import com.autopart.ordermgmt.orderdetail.domain.model.StoreTaskAdvanceResponse
@@ -12,6 +16,6 @@ class AdvanceOrderUseCase @Inject constructor(
     private val orderRepository: OrderRepository
 ) {
     suspend operator fun invoke(orderId: String, employeeId: String): StoreTaskAdvanceResponse? {
-        return orderRepository.advanceOrder(orderId, employeeId)
+        return orderRepository.orderStatus(orderId, employeeId)
     }
 }
