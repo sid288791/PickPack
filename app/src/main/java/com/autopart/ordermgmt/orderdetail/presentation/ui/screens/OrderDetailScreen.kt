@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.orderdetail.presentation.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility

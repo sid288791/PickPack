@@ -1,18 +1,20 @@
+/*
+ * Copyright (c) Koninklijke Advance N.V.,2026
+ * All rights reserved
+ */
 package com.autopart.ordermgmt.orderdetail.data.repository
 
+import com.autopart.networkclient.domain.repository.NetworkService
+import com.autopart.networkclient.domain.usecase.ApiUseCase
+import com.autopart.ordermgmt.orderdetail.data.remote.AdvanceOrderRequest
+import com.autopart.ordermgmt.orderdetail.data.remote.GetOrderRequest
 import com.autopart.ordermgmt.orderdetail.domain.model.Order
 import com.autopart.ordermgmt.orderdetail.domain.model.OrderItem
 import com.autopart.ordermgmt.orderdetail.domain.model.ItemLocation
 import com.autopart.ordermgmt.orderdetail.domain.model.StoreTaskAdvanceResponse
 import com.autopart.ordermgmt.orderdetail.domain.repository.OrderRepository
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,18 +24,28 @@ import javax.inject.Singleton
  */
 @Singleton
 class OrderRepositoryImpl @Inject constructor(
-    private val httpClient: HttpClient
+
 ) : OrderRepository {
+    private val apiUseCase: ApiUseCase by lazy { ApiUseCase() }
+    internal val networkService = NetworkService()
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     companion object {
         private const val BASE_URL = "http://192.168.31.78:8080"
+        private const val TAG_GET_ORDER = "GetOrder"
+        private const val TAG_ADVANCE_ORDER = "AdvanceOrder"
     }
+
     override suspend fun getOrder(orderId: String?): Order? {
         return try {
             System.out.print("GetOrderUseCase invoked with orderId: $orderId")
-            val response: OrderResponseDto = httpClient.get("$BASE_URL/orders/$orderId").body()
-            print("Response_from_API: $response")
-            mapToOrder(response)
+            val responseJson = fetchOrder(orderId ?: return null)
+            print("Response_from_API: $responseJson")
+            responseJson?.let {
+                val dto = json.decodeFromString<OrderResponseDto>(it)
+                mapToOrder(dto)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             System.out.println("HTTP_ERROR: ${e.javaClass.simpleName} - ${e.message}")
@@ -41,13 +53,10 @@ class OrderRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun advanceOrder(orderId: String, employeeId: String): StoreTaskAdvanceResponse? {
+    override suspend fun orderStatus(orderId: String, employeeId: String): StoreTaskAdvanceResponse? {
         return try {
-            val response: AdvanceOrderDto = httpClient.post("$BASE_URL/store-tasks/$orderId/advance") {
-                contentType(ContentType.Application.Json)
-                setBody(AdvanceRequestDto(employeeId = employeeId))
-            }.body()
-
+            val responseJson = fetchAdvanceOrder(orderId, employeeId) ?: return null
+            val response = json.decodeFromString<AdvanceOrderDto>(responseJson)
             StoreTaskAdvanceResponse(
                 id = response.id,
                 taskNumber = response.taskNumber,
@@ -57,6 +66,24 @@ class OrderRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+
+    private suspend fun fetchOrder(orderId: String): String? {
+        val request = GetOrderRequest(baseUrl = BASE_URL)
+        request.buildUrl(orderId)
+        return networkService.processNonEssentialApiResponse(
+            apiUseCase.execute(request),
+            TAG_GET_ORDER
+        )
+    }
+
+    private suspend fun fetchAdvanceOrder(orderId: String, employeeId: String): String? {
+        val request = AdvanceOrderRequest(baseUrl = BASE_URL)
+        request.buildUrl(orderId, employeeId)
+        return networkService.processNonEssentialApiResponse(
+            apiUseCase.execute(request),
+            TAG_ADVANCE_ORDER
+        )
     }
 
     private fun mapToOrder(dto: OrderResponseDto): Order {
@@ -103,11 +130,6 @@ class OrderRepositoryImpl @Inject constructor(
         )
     }
 }
-
-@Serializable
-private data class AdvanceRequestDto(
-    val employeeId: String
-)
 
 @Serializable
 private data class AdvanceOrderDto(
